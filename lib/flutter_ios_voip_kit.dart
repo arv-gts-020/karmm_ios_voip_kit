@@ -2,8 +2,8 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/services.dart';
-import 'package:flutter_ios_voip_kit/call_state_type.dart';
-import 'package:flutter_ios_voip_kit/channel_type.dart';
+import 'package:karmm_ios_voip_kit/call_state_type.dart';
+import 'package:karmm_ios_voip_kit/channel_type.dart';
 
 import 'notifications_settings.dart';
 
@@ -14,20 +14,20 @@ typedef IncomingAction = void Function(String uuid, String callerId);
 typedef OnUpdatePushToken = void Function(String token);
 typedef OnAudioSessionStateChanged = void Function(bool active);
 
-class FlutterIOSVoIPKit {
-  static FlutterIOSVoIPKit get instance => _getInstance();
-  static FlutterIOSVoIPKit? _instance;
-  static FlutterIOSVoIPKit _getInstance() {
+class KarmmIOSVoIPKit {
+  static KarmmIOSVoIPKit get instance => _getInstance();
+  static KarmmIOSVoIPKit? _instance;
+  static KarmmIOSVoIPKit _getInstance() {
     if (_instance == null) {
-      _instance = FlutterIOSVoIPKit._internal();
+      _instance = KarmmIOSVoIPKit._internal();
     }
 
     return _instance!;
   }
 
-  factory FlutterIOSVoIPKit() => _getInstance();
+  factory KarmmIOSVoIPKit() => _getInstance();
 
-  FlutterIOSVoIPKit._internal() {
+  KarmmIOSVoIPKit._internal() {
     if (Platform.isAndroid) {
       return;
     }
