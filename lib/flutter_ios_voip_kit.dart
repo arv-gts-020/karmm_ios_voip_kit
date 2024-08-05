@@ -32,9 +32,8 @@ class FlutterIOSVoIPKit {
       return;
     }
 
-    _eventSubscription = EventChannel(ChannelType.event.name)
-        .receiveBroadcastStream()
-        .listen(_eventListener, onError: _errorListener);
+    _eventSubscription =
+        EventChannel(ChannelType.event.name).receiveBroadcastStream().listen(_eventListener, onError: _errorListener);
   }
 
   /// [onDidReceiveIncomingPush] is not called when the app is not running, because app is not yet running when didReceiveIncomingPushWith is called.
@@ -223,10 +222,6 @@ class FlutterIOSVoIPKit {
       case 'onDidRejectIncomingCall':
         print('🎈 onDidRejectIncomingCall($onDidRejectIncomingCall): $map');
 
-        if (onDidRejectIncomingCall == null) {
-          return;
-        }
-
         onDidRejectIncomingCall!(
           map['uuid'],
           map['incoming_caller_id'],
@@ -245,13 +240,11 @@ class FlutterIOSVoIPKit {
         break;
       case 'onDidActivateAudioSession':
         print('🎈 onDidActivateAudioSession');
-        if (onAudioSessionStateChanged != null)
-          onAudioSessionStateChanged!(true);
+        if (onAudioSessionStateChanged != null) onAudioSessionStateChanged!(true);
         break;
       case 'onDidDeactivateAudioSession':
         print('🎈 onDidDeactivateAudioSession');
-        if (onAudioSessionStateChanged != null)
-          onAudioSessionStateChanged!(false);
+        if (onAudioSessionStateChanged != null) onAudioSessionStateChanged!(false);
         break;
     }
   }

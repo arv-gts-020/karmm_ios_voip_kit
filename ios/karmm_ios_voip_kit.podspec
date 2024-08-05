@@ -1,5 +1,5 @@
 Pod::Spec.new do |s|
-  s.name             = 'flutter_ios_voip_kit'
+  s.name             = 'karmm_ios_voip_kit'
   s.version          = '0.0.1'
   s.summary          = 'A new flutter plugin project.'
   s.description      = <<-DESC
