@@ -2,8 +2,8 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/services.dart';
-import 'package:karmm_ios_voip_kit/call_state_type.dart';
-import 'package:karmm_ios_voip_kit/channel_type.dart';
+import 'package:flutter_ios_voip_kit/call_state_type.dart';
+import 'package:flutter_ios_voip_kit/channel_type.dart';
 
 import 'notifications_settings.dart';
 
@@ -14,20 +14,20 @@ typedef IncomingAction = void Function(String uuid, String callerId);
 typedef OnUpdatePushToken = void Function(String token);
 typedef OnAudioSessionStateChanged = void Function(bool active);
 
-class KarmmIOSVoIPKit {
-  static KarmmIOSVoIPKit get instance => _getInstance();
-  static KarmmIOSVoIPKit? _instance;
-  static KarmmIOSVoIPKit _getInstance() {
+class FlutterIOSVoIPKit {
+  static FlutterIOSVoIPKit get instance => _getInstance();
+  static FlutterIOSVoIPKit? _instance;
+  static FlutterIOSVoIPKit _getInstance() {
     if (_instance == null) {
-      _instance = KarmmIOSVoIPKit._internal();
+      _instance = FlutterIOSVoIPKit._internal();
     }
 
     return _instance!;
   }
 
-  factory KarmmIOSVoIPKit() => _getInstance();
+  factory FlutterIOSVoIPKit() => _getInstance();
 
-  KarmmIOSVoIPKit._internal() {
+  FlutterIOSVoIPKit._internal() {
     if (Platform.isAndroid) {
       return;
     }
@@ -221,6 +221,10 @@ class KarmmIOSVoIPKit {
         break;
       case 'onDidRejectIncomingCall':
         print('🎈 onDidRejectIncomingCall($onDidRejectIncomingCall): $map');
+
+        if (onDidRejectIncomingCall == null) {
+          return;
+        }
 
         onDidRejectIncomingCall!(
           map['uuid'],

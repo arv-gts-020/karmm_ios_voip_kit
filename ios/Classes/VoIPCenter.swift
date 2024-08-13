@@ -1,9 +1,15 @@
+//
+//  VoIPCenter.swift
+//  flutter_ios_voip_kit
+//
+//  Created by 須藤将史 on 2020/07/02.
+//
+
 import Foundation
 import Flutter
 import PushKit
 import CallKit
 import AVFoundation
-import UIKit
 
 extension String {
     internal init(deviceToken: Data) {
@@ -17,12 +23,12 @@ class VoIPCenter: NSObject {
 
     private let eventChannel: FlutterEventChannel
     private var eventSink: FlutterEventSink?
-    private(set) var callStatus: String?
 
     private enum EventChannel: String {
         case onDidReceiveIncomingPush
         case onDidAcceptIncomingCall
         case onDidRejectIncomingCall
+        
         case onDidUpdatePushToken
         case onDidActivateAudioSession
         case onDidDeactivateAudioSession
@@ -97,47 +103,20 @@ extension VoIPCenter: PKPushRegistryDelegate {
     public func pushRegistry(_ registry: PKPushRegistry, didReceiveIncomingPushWith payload: PKPushPayload, for type: PKPushType, completion: @escaping () -> Void) {
         print("🎈 VoIP didReceiveIncomingPushWith completion: \(payload.dictionaryPayload)")
 
-        guard let info = self.parse(payload: payload) else {
-            print("❌ Failed to parse payload")
-            completion()
-            return
-        }
-        
-        let callStatus = info["call_status"] as? String ?? ""
-        
-        
-        self.callStatus=callStatus
-        print("🎈 CallStatus: \(callStatus)")
-    
-        
-        
-        let callerName = info["incoming_caller_name"] as? String ?? "Unknown"
-        let uuidString = info["uuid"] as? String ?? UUID().uuidString
-        self.eventSink?(["event": EventChannel.onDidReceiveIncomingPush.rawValue,
-                         "payload": info as Any,
-                         "incoming_caller_name": callerName])
-        if(callStatus=="canceled" || callStatus=="notconnected"){
-            self.callKitCenter.endCall()
-            completion()
-            return
-        }else{
-            
-                  
-                  self.callKitCenter.incomingCall(uuidString: uuidString, callerId: info["incoming_caller_id"] as? String ?? "", callerName: callerName) { error in
-                      if let error = error {
-                          completion()
-                          print("❌ reportNewIncomingCall error: \(error.localizedDescription)")
-                          return
-                      }
-                      
-                    
-                      
-                      
-                  
-              }
+        let info = self.parse(payload: payload)
+        let callerName = info?["incoming_caller_name"] as! String
+        self.callKitCenter.incomingCall(uuidString: info?["uuid"] as! String,
+                                        callerId: info?["incoming_caller_id"] as! String,
+                                        callerName: callerName) { error in
+            if let error = error {
+                print("❌ reportNewIncomingCall error: \(error.localizedDescription)")
+                return
+            }
+            self.eventSink?(["event": EventChannel.onDidReceiveIncomingPush.rawValue,
+                             "payload": info as Any,
+                             "incoming_caller_name": callerName])
             completion()
         }
-        
     }
 
     // NOTE: iOS10 support
@@ -145,44 +124,19 @@ extension VoIPCenter: PKPushRegistryDelegate {
     public func pushRegistry(_ registry: PKPushRegistry, didReceiveIncomingPushWith payload: PKPushPayload, for type: PKPushType) {
         print("🎈 VoIP didReceiveIncomingPushWith: \(payload.dictionaryPayload)")
 
-        guard let info = self.parse(payload: payload) else {
-            print("❌ Failed to parse payload")
-            return
-        }
-        
-        let callStatus = info["call_status"] as? String ?? ""
-        self.callStatus=callStatus
-        print("🎈 CallStatus: \(callStatus)")
-        
-        let callerName = info["incoming_caller_name"] as? String ?? "Unknown"
-        let uuidString = info["uuid"] as? String ?? UUID().uuidString
-        
-        self.eventSink?(["event": EventChannel.onDidReceiveIncomingPush.rawValue,
-                         "payload": info as Any,
-                         "incoming_caller_name": callerName])
-        if(callStatus=="canceled" || callStatus=="notconnected"){
-            self.callKitCenter.endCall()
-            return}
-        else{
-          
-            
-            self.callKitCenter.incomingCall(uuidString: uuidString, callerId: info["incoming_caller_id"] as? String ?? "", callerName: callerName) { error in
-                if let error = error {
-                    print("❌ reportNewIncomingCall error: \(error.localizedDescription)")
-                    return
-                }
-                
-                
-                
-                
+        let info = self.parse(payload: payload)
+        let callerName = info?["incoming_caller_name"] as! String
+        self.callKitCenter.incomingCall(uuidString: info?["uuid"] as! String,
+                                        callerId: info?["incoming_caller_id"] as! String,
+                                        callerName: callerName) { error in
+            if let error = error {
+                print("❌ reportNewIncomingCall error: \(error.localizedDescription)")
+                return
             }
+            self.eventSink?(["event": EventChannel.onDidReceiveIncomingPush.rawValue,
+                             "payload": info as Any,
+                             "incoming_caller_name": callerName])
         }
-        
-       
-            
-        
-        
-        
     }
 
     private func parse(payload: PKPushPayload) -> [String: Any]? {
@@ -220,113 +174,19 @@ extension VoIPCenter: CXProviderDelegate {
                          "uuid": self.callKitCenter.uuidString as Any,
                          "incoming_caller_id": self.callKitCenter.incomingCallerId as Any])
     }
-    
-    func removePrefix(from string: String, prefix: String) -> String {
-        if string.hasPrefix(prefix) {
-            let startIndex = string.index(string.startIndex, offsetBy: prefix.count)
-            return String(string[startIndex...])
-        } else {
-            return string
-        }
-    }
-    
+
     public func provider(_ provider: CXProvider, perform action: CXEndCallAction) {
         print("❎ VoIP CXEndCallAction")
-        let callStatus = self.callStatus ?? ""
-        print("callStatus : \(callStatus)")
-        if (self.callKitCenter.isCalleeBeforeAcceptIncomingCall && self.callStatus=="initiated") {
-            guard let incomingCallerId = self.callKitCenter.incomingCallerId else {
-                print("Error: incomingCallerId is nil")
-                return
-            }
-            let roomId = removePrefix(from: incomingCallerId, prefix: "instant_")
-            print("RoomId : \(roomId)")
-            
-            var backgroundTask: UIBackgroundTaskIdentifier = .invalid
-            backgroundTask = UIApplication.shared.beginBackgroundTask {
-                UIApplication.shared.endBackgroundTask(backgroundTask)
-                backgroundTask = .invalid
-            }
-            
-            updateCallStatus(uuid: roomId, status: "rejected") {
-                UIApplication.shared.endBackgroundTask(backgroundTask)
-                backgroundTask = .invalid
-            }
-            
-            
-            
+        if (self.callKitCenter.isCalleeBeforeAcceptIncomingCall) {
+            self.eventSink?(["event": EventChannel.onDidRejectIncomingCall.rawValue,
+                             "uuid": self.callKitCenter.uuidString as Any,
+                             "incoming_caller_id": self.callKitCenter.incomingCallerId as Any])
         }
-        self.eventSink?(["event": EventChannel.onDidRejectIncomingCall.rawValue,
-                         "uuid": self.callKitCenter.uuidString as Any,
-                         "incoming_caller_id": self.callKitCenter.incomingCallerId as Any])
-//        self.callKitCenter.disconnected(reason: .remoteEnded)
-        
+
+        self.callKitCenter.disconnected(reason: .remoteEnded)
         action.fulfill()
     }
-
-    func updateCallStatus(uuid: String, status: String, completion: @escaping () -> Void) {
-        /// change the api endpoint here
-        let url = URL(string: "https://apidev.karmm.com/api/v4/common/iosCallingCancel")!
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-
-        let parameters: [String: Any] = [
-            "roomId": uuid,
-            "status": status
-        ]
-
-        do {
-            request.httpBody = try JSONSerialization.data(withJSONObject: parameters, options: .prettyPrinted)
-        } catch let error {
-            print("Error serializing JSON: \(error.localizedDescription)")
-            completion()
-            return
-        }
-
-        let task = URLSession.shared.dataTask(with: request) { data, response, error in
-            if let error = error {
-                print("Network error: \(error.localizedDescription)")
-                completion()
-                return
-            }
-
-            guard let httpResponse = response as? HTTPURLResponse else {
-                print("Invalid response")
-                completion()
-                return
-            }
-
-            if !(200...299).contains(httpResponse.statusCode) {
-                print("Server error: HTTP \(httpResponse.statusCode)")
-                completion()
-                return
-            }
-
-            guard let data = data else {
-                print("No data received")
-                completion()
-                return
-            }
-
-            do {
-                let responseJSON = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any]
-                if let responseJSON = responseJSON {
-                    print("Response: \(responseJSON)")
-                } else {
-                    print("Failed to parse JSON response")
-                }
-            } catch let error {
-                print("Error parsing JSON response: \(error.localizedDescription)")
-            }
-            
-            completion()
-        }
-
-        task.resume()
-        print("Status Updated Successfully")
-    }
-
+    
     public func provider(_ provider: CXProvider, didActivate audioSession: AVAudioSession) {
         print("🔈 VoIP didActivate audioSession")
         self.eventSink?(["event": EventChannel.onDidActivateAudioSession.rawValue])
@@ -336,12 +196,15 @@ extension VoIPCenter: CXProviderDelegate {
         print("🔇 VoIP didDeactivate audioSession")
         self.eventSink?(["event": EventChannel.onDidDeactivateAudioSession.rawValue])
     }
-
+    
+    // This is a workaround for known issue, when audio doesn't start from lockscreen call
+    // https://stackoverflow.com/questions/55391026/no-sound-after-connecting-to-webrtc-when-app-is-launched-in-background-using-pus
     private func configureAudioSession() {
         let sharedSession = AVAudioSession.sharedInstance()
         do {
             try sharedSession.setCategory(.playAndRecord,
-                                          options: [.allowBluetooth, .defaultToSpeaker])
+                                          options: [AVAudioSession.CategoryOptions.allowBluetooth,
+                                                    AVAudioSession.CategoryOptions.defaultToSpeaker])
             try sharedSession.setMode(audioSessionMode)
             try sharedSession.setPreferredIOBufferDuration(ioBufferDuration)
             try sharedSession.setPreferredSampleRate(audioSampleRate)
