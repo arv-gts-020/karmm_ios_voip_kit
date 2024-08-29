@@ -239,7 +239,7 @@ extension VoIPCenter: CXProviderDelegate {
                 print("Error: incomingCallerId is nil")
                 return
             }
-            let roomId = removePrefix(from: incomingCallerId, prefix: "instant_")
+            let roomId = incomingCallerId
             print("RoomId : \(roomId)")
             
             var backgroundTask: UIBackgroundTaskIdentifier = .invalid
@@ -266,7 +266,12 @@ extension VoIPCenter: CXProviderDelegate {
 
     func updateCallStatus(uuid: String, status: String, completion: @escaping () -> Void) {
         /// change the api endpoint here
-        let url = URL(string: "https://apidev.karmm.com/api/v4/common/iosCallingCancel")!
+    guard let rejectCallLink = Bundle.main.object(forInfoDictionaryKey: "Reject_Call_Link") as? String,
+        
+        let url = URL(string: rejectCallLink) else {
+            print("Invalid URL or missing Reject_Call_Link")
+            return
+        }
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")

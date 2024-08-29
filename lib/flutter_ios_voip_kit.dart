@@ -2,8 +2,8 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/services.dart';
-import 'package:flutter_ios_voip_kit/call_state_type.dart';
-import 'package:flutter_ios_voip_kit/channel_type.dart';
+import 'package:flutter_ios_voip_kit_karmm/call_state_type.dart';
+import 'package:flutter_ios_voip_kit_karmm/channel_type.dart';
 
 import 'notifications_settings.dart';
 
@@ -221,11 +221,7 @@ class FlutterIOSVoIPKit {
         break;
       case 'onDidRejectIncomingCall':
         print('🎈 onDidRejectIncomingCall($onDidRejectIncomingCall): $map');
-
-        if (onDidRejectIncomingCall == null) {
-          return;
-        }
-
+        if (onDidRejectIncomingCall == null) return;
         onDidRejectIncomingCall!(
           map['uuid'],
           map['incoming_caller_id'],

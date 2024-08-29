@@ -1,10 +1,10 @@
-name: flutter_ios_voip_kit
+name: flutter_ios_voip_kit_karmm
 description: One-to-one video call using CallKit and PushKit with flutter ios app.
-version: 0.1.0
+version: 0.7.0
 homepage: https://github.com/masashi-sutou/flutter_ios_voip_kit
 
 environment:
-  sdk: ">=2.12.0 <3.0.0"
+  sdk: ">=2.12.0 <4.0.0"
   flutter: ">=2.0.0"
 
 dependencies:
@@ -18,8 +18,5 @@ dev_dependencies:
 flutter:
   plugin:
     platforms:
-      android:
-        package: netkeepingblog.flutter_ios_voip_kit
-        pluginClass: FlutterIOSVoIPKitPlugin
       ios:
         pluginClass: FlutterIOSVoIPKitPlugin

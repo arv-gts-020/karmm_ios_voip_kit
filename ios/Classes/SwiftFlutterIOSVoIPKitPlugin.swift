@@ -29,7 +29,8 @@ public class SwiftFlutterIOSVoIPKitPlugin: NSObject {
     private func getVoIPToken(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
         result(self.voIPCenter.token)
     }
-
+    
+    
     private func getIncomingCallerName(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
         result(self.voIPCenter.callKitCenter.incomingCallerName)
     }
@@ -46,6 +47,9 @@ public class SwiftFlutterIOSVoIPKitPlugin: NSObject {
     }
 
     private func endCall(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
+       
+      
+      
         self.voIPCenter.callKitCenter.endCall()
         result(nil)
     }
@@ -61,34 +65,11 @@ public class SwiftFlutterIOSVoIPKitPlugin: NSObject {
     }
 
     private func unansweredIncomingCall(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-        guard let args = call.arguments as? [String: Any],
-            let skipLocalNotification = args["skipLocalNotification"] as? Bool else {
-                result(FlutterError(code: "InvalidArguments unansweredIncomingCall", message: nil, details: nil))
-                return
-        }
+       
 
         self.voIPCenter.callKitCenter.unansweredIncomingCall()
 
-        if (skipLocalNotification) {
-            result(nil)
-            return
-        }
-
-        let content = UNMutableNotificationContent()
-        content.title = args["missedCallTitle"] as? String ?? "Missed Call"
-        content.body = args["missedCallBody"] as? String ?? "There was a call"
-        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 2,
-                                                        repeats: false)
-        let request = UNNotificationRequest(identifier: "unansweredIncomingCall",
-                                            content: content,
-                                            trigger: trigger)
-        self.notificationCenter.add(request) { (error) in
-            if let error = error {
-                print("❌ unansweredIncomingCall local notification error: \(error.localizedDescription)")
-            }
-        }
-
-        result(nil)
+       result(nil)
     }
 
     private func callConnected(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
@@ -159,6 +140,7 @@ extension SwiftFlutterIOSVoIPKitPlugin: FlutterPlugin {
         case requestAuthLocalNotification
         case getLocalNotificationsSettings
         case testIncomingCall
+        
     }
 
     // MARK: - FlutterPlugin（method channel）
@@ -189,6 +171,8 @@ extension SwiftFlutterIOSVoIPKitPlugin: FlutterPlugin {
                 self.getLocalNotificationsSettings(call, result: result)
             case .testIncomingCall:
                 self.testIncomingCall(call, result: result)
+           
+            
         }
     }
 }

@@ -1,3 +1,16 @@
+
+## 0.6.0
+* Abstraction Done `Download Karmm Now :- https://play.google.com/store/apps/details?id=com.astrology.karmm&pcampaignid=web_share`
+
+
+## 0.5.0 
+* Bridging Header File Issue Solved in `FlutterIOSVoIPKitPlugin.m`.
+
+## 0.4.0
+*Improved.
+
+## 0.2.0
+
 ## 0.1.0
 
 * PR(#45)
