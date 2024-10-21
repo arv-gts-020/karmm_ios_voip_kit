@@ -112,7 +112,7 @@ class CallKitCenter: NSObject {
             update.supportsUngrouping = true
             self.provider?.reportNewIncomingCall(with: self.uuid, update: update, completion: { error in
                 if (error == nil) {
-    //                self.connectedOutgoingCall()
+                   self.connectedOutgoingCall()
                 }
                 
                 completion(error)
